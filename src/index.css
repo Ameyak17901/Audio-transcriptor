@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  display: flex;
+  background-color: rgba(255, 248, 248, 0.126);
+  justify-content: center;
+}
+
+:root .darkmode{
+  display: flex;
+  background-color: rgba(4, 4, 4, 0.558);
+  justify-content: center;
+}
