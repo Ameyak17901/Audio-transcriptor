@@ -1,8 +1,37 @@
-# React + Vite
+# Audio Transcriptor
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+### Description:  
+  This an application that convertes the speech to text and display the text on the screen. This application also keeps the history of the previous audio transcriptions.
 
-Currently, two official plugins are available:
+Instructions to set up the project:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Clone the repository:  
+  ``` 
+  git clone <url>
+  ```
+
+- Install the dependencies:
+  ```
+  npm install
+  ```
+
+- Start the development server:
+  ```
+  npm run dev
+  ```
+
+- Create a Deepgram account:
+  1. Generate an API Key and create .env file and store the API Key as below:
+     ```
+     VITE_APP_API_KEY = <key> 
+     ```
+Then the project ready to use. 
+
+Tech Stack used:  
+- Frontend:
+  React.js
+- Styling:  
+  1. Tailwind CSS.
+  2. Styled Components.  
+       
+   
