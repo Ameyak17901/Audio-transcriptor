@@ -1,24 +1,41 @@
 /* eslint-disable react/prop-types */
-
-import {useNavigate} from 'react-router-dom'
+import { useNavigate } from "react-router-dom";
 
 const TranscribeHistoryItem = ({ data }) => {
-  
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const transcript =
+    data?.results?.channels?.[0]?.alternatives?.[0]?.transcript || "Empty transcript";
+  const created = data?.metadata?.created;
+
+  const formattedDate = created
+    ? new Date(created).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "Recent";
 
   return (
-    <div className="flex flex-col border-2 rounded-xl p-2 hover:bg-slate-300" onClick={() => {
-      navigate('/transcript', {state: data})
-    }}>
-      {data?.results?.channels[0]?.alternatives[0]?.transcript}
-      <div className="flex text-xs content-end">
-        {
-          new Date(`${data?.metadata?.created}`).toLocaleDateString(
-            "en-US",
-            { timeZoneName: "short", hour: '2-digit', minute: '2-digit', second: '2-digit' }
-          )
+    <div
+      role="button"
+      tabIndex={0}
+      className="flex flex-col gap-1 border border-slate-200 rounded-xl p-3 hover:border-sky-300 hover:bg-sky-50/50 cursor-pointer transition text-left"
+      onClick={() => {
+        navigate("/transcript", { state: data });
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          navigate("/transcript", { state: data });
         }
-      </div>
+      }}
+    >
+      <p className="text-xs text-slate-700 font-medium line-clamp-2">
+        {transcript}
+      </p>
+      <span className="text-[10px] text-slate-400 font-mono">
+        {formattedDate}
+      </span>
     </div>
   );
 };

@@ -1,23 +1,22 @@
-import { useMemo, useState } from "react";
 import TranscribeHistoryItem from "./TranscibeHistoryItem";
 
 /*eslint-disable react/prop-types*/
-const TranscribeHistory = ({ data }) => {
-  const [transcibes, setTranscribes] = useState([]);
-
-  useMemo(() => {
-    setTranscribes(data);
-  }, [data]);
+const TranscribeHistory = ({ data = [] }) => {
+  if (!data || data.length === 0) return null;
 
   return (
-    <div className="flex border border-1 min-w-44 my-4 rounded items-start content-end flex-col bg-slate-50 gap-y-1 p-2"  >
-      {transcibes.length > 0 &&
-        transcibes.map((item, i) => (
+    <div className="w-full max-w-xs flex flex-col bg-white border border-slate-200 rounded-2xl p-4 shadow-sm h-[520px] overflow-hidden">
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 pb-2 border-b border-slate-100 mb-2">
+        Recent History
+      </h3>
+      <div className="flex-1 overflow-y-auto flex flex-col gap-2 pr-1 scroll-smooth">
+        {data.map((item, i) => (
           <TranscribeHistoryItem
-            key={item?.metadata?.request_id || i}
+            key={item?.metadata?.request_id || item?.metadata?.created || i}
             data={item}
           />
         ))}
+      </div>
     </div>
   );
 };
