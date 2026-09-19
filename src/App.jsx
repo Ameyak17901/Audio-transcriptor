@@ -7,11 +7,11 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<AppLayout></AppLayout>} />
+        <Route path="/" element={<AppLayout />} />
         <Route
           path="/transcript"
           element={
-            <div className="flex items-center h-screen w-screen justify-center bg-slate-300">
+            <div className="flex items-center min-h-screen w-full justify-center bg-gradient-to-b from-slate-50 to-slate-100 p-4">
               <TranscriptPage />
             </div>
           }
