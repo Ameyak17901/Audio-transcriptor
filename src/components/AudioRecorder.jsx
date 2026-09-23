@@ -2,20 +2,24 @@
 import { useState } from "react";
 import { useAudioRecorder } from "../hooks/useAudioRecorder";
 import { speechToText } from "../services/transcriptAPI";
+import AudioVisualizer from "./AudioVisualizer";
+import AudioDeviceSelector from "./AudioDeviceSelector";
 
-const AudioRecorder = ({ setData }) => {
+const AudioRecorder = ({ setData, onTranscribed }) => {
   const {
     isRecording,
     isReviewing,
     formattedTime,
     audioBlob,
     audioUrl,
+    mediaStream,
     error: recorderError,
     startRecording,
     stopRecording,
     resetRecording,
   } = useAudioRecorder();
 
+  const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [apiError, setApiError] = useState(null);
 
@@ -27,7 +31,11 @@ const AudioRecorder = ({ setData }) => {
     try {
       const result = await speechToText(audioBlob);
       if (result) {
-        setData((prev) => [result, ...prev]);
+        if (typeof onTranscribed === "function") {
+          onTranscribed(result);
+        } else if (typeof setData === "function") {
+          setData((prev) => (Array.isArray(prev) ? [result, ...prev] : result));
+        }
         resetRecording();
       }
     } catch (err) {
@@ -74,10 +82,10 @@ const AudioRecorder = ({ setData }) => {
 
       {/* State 1: Idle (Initial State) */}
       {!isRecording && !isReviewing && (
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-3">
           <button
             type="button"
-            onClick={startRecording}
+            onClick={() => startRecording(selectedDeviceId)}
             className="group flex items-center gap-3 bg-sky-600 hover:bg-sky-700 active:scale-95 text-white font-medium px-6 py-3.5 rounded-full shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-4 focus:ring-sky-200"
             aria-label="Start audio recording"
           >
@@ -97,9 +105,17 @@ const AudioRecorder = ({ setData }) => {
             </svg>
             <span>Start Recording</span>
           </button>
+
           <span className="text-xs text-slate-500">
             Click to record with your microphone
           </span>
+
+          {/* Microphone Selector */}
+          <AudioDeviceSelector
+            selectedDeviceId={selectedDeviceId}
+            onDeviceChange={setSelectedDeviceId}
+            disabled={isRecording}
+          />
         </div>
       )}
 
@@ -118,6 +134,9 @@ const AudioRecorder = ({ setData }) => {
               {formattedTime}
             </span>
           </div>
+
+          {/* Live Waveform Canvas Visualizer */}
+          <AudioVisualizer mediaStream={mediaStream} className="w-full my-1" />
 
           <button
             type="button"

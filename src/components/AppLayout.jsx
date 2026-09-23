@@ -1,10 +1,19 @@
-import { useState } from "react";
-import AudioRecorder from "./AudioRecorder";
+import { useTranscriptions } from "../hooks/useTranscriptions";
+import StudioContainer from "./StudioContainer";
 import Transcription from "./Transcription";
 import TranscribeHistory from "./TranscribeHistory";
 
 const AppLayout = () => {
-  const [data, setData] = useState([]);
+  const {
+    filteredTranscripts,
+    searchQuery,
+    setSearchQuery,
+    addTranscript,
+    updateTranscript,
+    deleteTranscript,
+    clearAllTranscripts,
+    totalCount,
+  } = useTranscriptions();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-800 flex flex-col items-center py-10 px-4 sm:px-6">
@@ -18,28 +27,37 @@ const AppLayout = () => {
           Audio Transcription
         </h1>
         <p className="text-sm sm:text-base text-slate-500 mt-2 max-w-md">
-          Record your voice and instantly transcribe it with Deepgram AI.
+          Record your voice or upload audio files to transcribe with Deepgram AI.
         </p>
       </header>
 
       {/* Main Studio Area */}
       <main className="w-full max-w-4xl flex flex-col gap-8 items-center">
-        {/* Recording Control Center */}
+        {/* Studio Recording & Dropzone Switcher */}
         <section className="w-full bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-          <AudioRecorder setData={setData} />
+          <StudioContainer onTranscribed={addTranscript} />
         </section>
 
         {/* Transcriptions and History Content */}
         <section className="w-full flex flex-col md:flex-row gap-6 items-start justify-center">
           <div className="flex-1 w-full">
-            <Transcription data={data} />
+            <Transcription
+              data={filteredTranscripts}
+              onUpdate={updateTranscript}
+              onDelete={deleteTranscript}
+            />
           </div>
 
-          {data.length > 0 && (
-            <aside className="w-full md:w-72 flex-shrink-0">
-              <TranscribeHistory data={data} />
-            </aside>
-          )}
+          <aside className="w-full md:w-80 flex-shrink-0">
+            <TranscribeHistory
+              data={filteredTranscripts}
+              totalCount={totalCount}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              onDelete={deleteTranscript}
+              onClearAll={clearAllTranscripts}
+            />
+          </aside>
         </section>
       </main>
     </div>
