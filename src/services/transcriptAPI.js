@@ -17,7 +17,8 @@ export async function speechToText(audioBlob) {
     );
   }
 
-  const apiUrl = "/api/transcribe?model=nova-3&smart_format=true&punctuate=true";
+  const baseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+  const apiUrl = `${baseUrl}/api/transcribe?model=nova-3&smart_format=true&punctuate=true`;
   const contentType = audioBlob.type || "audio/webm";
 
   const options = {
