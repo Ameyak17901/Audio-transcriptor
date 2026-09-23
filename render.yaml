@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: audio-transcriptor
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: DEEPGRAM_API_KEY
+        sync: false
+      - key: ENVIRONMENT
+        value: production
