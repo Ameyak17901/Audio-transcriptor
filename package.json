@@ -9,7 +9,10 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:backend": "pytest backend/tests",
+    "server:dev": "uvicorn app.main:app --app-dir backend --reload --port 8000",
+    "server:start": "uvicorn app.main:app --app-dir backend --port 8000"
   },
   "dependencies": {
     "react": "^18.3.1",
