@@ -1,20 +1,11 @@
-const apiKey = import.meta.env.VITE_DEEPGRAM_API_KEY;
-
 /**
- * Transcribes audio blob using Deepgram Speech-to-Text API
- * Uses modern 'nova-3' model with smart formatting and punctuation.
- * Routes through Vite proxy (/api/deepgram) in local dev to bypass CORS and ad-blockers.
+ * Transcribes audio blob via the secure backend proxy (/api/transcribe).
+ * Zero API keys are exposed to the client browser.
  *
  * @param {Blob} audioBlob - Recorded or uploaded audio blob
- * @returns {Promise<Object>} - Deepgram response data
+ * @returns {Promise<Object>} - Deepgram transcription data
  */
 export async function speechToText(audioBlob) {
-  if (!apiKey) {
-    throw new Error(
-      "Missing Deepgram API key. Please configure VITE_DEEPGRAM_API_KEY in your .env file and restart your Vite server."
-    );
-  }
-
   if (!audioBlob || !(audioBlob instanceof Blob)) {
     throw new Error("Invalid audio data provided for transcription.");
   }
@@ -26,17 +17,7 @@ export async function speechToText(audioBlob) {
     );
   }
 
-  // Use Vite proxy in development if running locally, otherwise direct endpoint
-  const isLocalDev =
-    typeof window !== "undefined" &&
-    (window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1");
-
-  const baseUrl = isLocalDev
-    ? "/api/deepgram/v1/listen"
-    : "https://api.deepgram.com/v1/listen";
-
-  const apiUrl = `${baseUrl}?model=nova-3&smart_format=true&punctuate=true`;
+  const apiUrl = "/api/transcribe?model=nova-3&smart_format=true&punctuate=true";
   const contentType = audioBlob.type || "audio/webm";
 
   const options = {
@@ -44,7 +25,6 @@ export async function speechToText(audioBlob) {
     headers: {
       "Content-Type": contentType,
       Accept: "application/json",
-      Authorization: `Token ${apiKey.trim()}`,
     },
     body: audioBlob,
   };
@@ -53,19 +33,9 @@ export async function speechToText(audioBlob) {
   try {
     response = await fetch(apiUrl, options);
   } catch (networkErr) {
-    // If local proxy fails for any reason, fallback to direct call
-    if (isLocalDev) {
-      try {
-        const directUrl = `https://api.deepgram.com/v1/listen?model=nova-3&smart_format=true&punctuate=true`;
-        response = await fetch(directUrl, options);
-      } catch (fallbackErr) {
-        throw new Error(
-          `Network connection to Deepgram failed: ${fallbackErr.message || networkErr.message}`
-        );
-      }
-    } else {
-      throw new Error(`Network connection to Deepgram failed: ${networkErr.message}`);
-    }
+    throw new Error(
+      `Cannot connect to backend server: ${networkErr.message}. Ensure the backend is running.`
+    );
   }
 
   if (!response.ok) {
@@ -73,15 +43,15 @@ export async function speechToText(audioBlob) {
     try {
       const errorJson = await response.json();
       errorDetail =
+        errorJson.detail ||
         errorJson.err_msg ||
         errorJson.message ||
-        errorJson.error ||
         JSON.stringify(errorJson);
     } catch {
       errorDetail = await response.text();
     }
     throw new Error(
-      `Deepgram API Error (${response.status}): ${errorDetail || response.statusText}`
+      `Transcription Error (${response.status}): ${errorDetail || response.statusText}`
     );
   }
 
