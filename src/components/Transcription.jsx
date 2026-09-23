@@ -1,11 +1,12 @@
 /* eslint-disable react/prop-types */
 import TranscriptionItem from "./TranscriptionItem";
 
-const Transcription = ({ data }) => {
+const Transcription = ({ data = [], onUpdate, onDelete }) => {
   return (
-    <div className="w-full max-w-2xl mx-auto flex flex-col h-[520px] bg-slate-50 border border-slate-200 rounded-2xl p-5 shadow-sm overflow-hidden">
+    <div className="w-full max-w-2xl mx-auto flex flex-col h-[540px] bg-slate-50 border border-slate-200 rounded-2xl p-5 shadow-sm overflow-hidden">
+      {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-600 flex items-center gap-2">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
           <svg
             className="w-4 h-4 text-sky-600"
             fill="none"
@@ -23,12 +24,15 @@ const Transcription = ({ data }) => {
         </h2>
       </div>
 
+      {/* List Container */}
       <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-3 scroll-smooth">
         {data && data.length > 0 ? (
           data.map((item, i) => (
             <TranscriptionItem
               data={item}
-              key={item.metadata?.request_id || item.metadata?.created || i}
+              key={item?.id || item?.metadata?.request_id || item?.metadata?.created || i}
+              onUpdate={onUpdate}
+              onDelete={onDelete}
             />
           ))
         ) : (
@@ -50,7 +54,7 @@ const Transcription = ({ data }) => {
             </div>
             <p className="text-sm font-medium text-slate-600">No transcripts yet</p>
             <p className="text-xs text-slate-400 mt-1 max-w-xs">
-              Record audio using the microphone above, then click Transcribe to see your text here.
+              Record voice or drop an audio file above, then click Transcribe to see your output here.
             </p>
           </div>
         )}
