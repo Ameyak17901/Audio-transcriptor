@@ -85,3 +85,78 @@ class DeepgramService:
             )
 
         return response.json()
+
+    async def transcribe_url(
+        self,
+        audio_url: str,
+        model: str = "nova-3",
+        smart_format: bool = True,
+        punctuate: bool = True,
+        language: str | None = None,
+        client: httpx.AsyncClient | None = None,
+    ) -> dict:
+        """
+        Transcribes audio directly from a remote signed URL (e.g. Supabase Storage).
+        Deepgram streams the audio directly from cloud storage, consuming 0 bytes of RAM on the backend.
+        """
+        if not self.api_key:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Deepgram API key is not configured on the server.",
+            )
+
+        if not audio_url or not audio_url.startswith("http"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid audio URL provided for transcription.",
+            )
+
+        params: dict[str, str | bool] = {
+            "model": model,
+            "smart_format": smart_format,
+            "punctuate": punctuate,
+        }
+        if language:
+            params["language"] = language
+
+        headers = {
+            "Authorization": f"Token {self.api_key}",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+        payload = {"url": audio_url}
+
+        async def _execute_post(http_client: httpx.AsyncClient) -> httpx.Response:
+            try:
+                return await http_client.post(
+                    self.base_url,
+                    params=params,
+                    headers=headers,
+                    json=payload,
+                )
+            except httpx.RequestError as exc:
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail=f"Network error communicating with Deepgram upstream: {str(exc)}",
+                ) from exc
+
+        if client is not None:
+            response = await _execute_post(client)
+        else:
+            async with httpx.AsyncClient(timeout=120.0) as fallback_client:
+                response = await _execute_post(fallback_client)
+
+        if response.status_code != status.HTTP_200_OK:
+            try:
+                error_body = response.json()
+                detail = error_body.get("err_msg") or error_body.get("message") or response.text
+            except Exception:
+                detail = response.text
+
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"Deepgram upstream error ({response.status_code}): {detail}",
+            )
+
+        return response.json()
+
