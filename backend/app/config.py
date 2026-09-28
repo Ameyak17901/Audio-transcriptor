@@ -19,19 +19,16 @@ class Settings(BaseSettings):
         "http://127.0.0.1:8000",
     ]
 
-<<<<<<< Updated upstream
     @field_validator("cors_origins", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, list[str]]) -> list[str]:
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",") if i.strip()]
         return v
-=======
     # Supabase Cloud Storage & Database
     supabase_url: str = ""
     supabase_service_role_key: str = ""
     supabase_bucket: str = "audio-recordings"
->>>>>>> Stashed changes
 
     model_config = SettingsConfigDict(
         env_file=(".env", "../.env"),
