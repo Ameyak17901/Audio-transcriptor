@@ -56,13 +56,18 @@ export const useTranscriptions = () => {
     (newTranscript) => {
       if (!newTranscript) return;
 
+      // Defensive guard: if a functional updater was inadvertently passed, resolve it
+      const resolved = typeof newTranscript === "function" ? newTranscript([]) : newTranscript;
+      const rawItem = Array.isArray(resolved) ? resolved[0] : resolved;
+      if (!rawItem || typeof rawItem !== "object") return;
+
       const normalizedItem = {
-        ...newTranscript,
+        ...rawItem,
         id:
-          newTranscript.id ||
-          newTranscript.metadata?.request_id ||
+          rawItem.id ||
+          rawItem.metadata?.request_id ||
           `tx_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        createdAt: newTranscript.metadata?.created || new Date().toISOString(),
+        createdAt: rawItem.createdAt || rawItem.metadata?.created || new Date().toISOString(),
       };
 
       setTranscripts((prev) => {

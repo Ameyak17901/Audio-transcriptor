@@ -3,10 +3,16 @@ import { useNavigate } from "react-router-dom";
 
 const TranscribeHistoryItem = ({ data, onDelete }) => {
   const navigate = useNavigate();
+  const target = data?.result || data?.data || data;
   const transcript =
-    data?.results?.channels?.[0]?.alternatives?.[0]?.transcript || "Empty transcript";
-  const created = data?.createdAt || data?.metadata?.created;
-  const isEdited = data?.metadata?.user_edited;
+    target?.transcript ||
+    target?.text ||
+    target?.results?.channels?.[0]?.alternatives?.[0]?.transcript ||
+    target?.results?.channels?.[0]?.alternatives?.[0]?.paragraphs?.transcript?.trim() ||
+    target?.full_transcript ||
+    "Empty transcript";
+  const created = target?.createdAt || target?.metadata?.created;
+  const isEdited = target?.metadata?.user_edited;
 
   const formattedDate = created
     ? new Date(created).toLocaleDateString("en-US", {

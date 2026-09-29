@@ -7,15 +7,22 @@ const TranscriptionItem = ({ data, onUpdate, onDelete }) => {
   const [copied, setCopied] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
 
+  const target = data?.result || data?.data || data;
   const transcriptText =
-    data?.results?.channels?.[0]?.alternatives?.[0]?.transcript || "";
+    target?.transcript ||
+    target?.text ||
+    target?.results?.channels?.[0]?.alternatives?.[0]?.transcript ||
+    target?.results?.channels?.[0]?.alternatives?.[0]?.paragraphs?.transcript?.trim() ||
+    target?.full_transcript ||
+    "";
   const [editText, setEditText] = useState(transcriptText);
 
   const confidence =
-    data?.results?.channels?.[0]?.alternatives?.[0]?.confidence;
-  const duration = data?.metadata?.duration;
-  const created = data?.createdAt || data?.metadata?.created;
-  const isEdited = data?.metadata?.user_edited;
+    target?.confidence ??
+    target?.results?.channels?.[0]?.alternatives?.[0]?.confidence;
+  const duration = target?.duration ?? target?.metadata?.duration;
+  const created = target?.createdAt || target?.metadata?.created;
+  const isEdited = target?.metadata?.user_edited;
 
   const exportMenuRef = useRef(null);
   const textareaRef = useRef(null);
@@ -88,10 +95,10 @@ const TranscriptionItem = ({ data, onUpdate, onDelete }) => {
 
   const formattedDate = created
     ? new Date(created).toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      })
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
     : null;
 
   const itemFilename = `transcript_${data?.id || "recording"}`;
