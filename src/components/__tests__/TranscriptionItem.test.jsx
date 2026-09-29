@@ -110,4 +110,56 @@ describe("TranscriptionItem Component", () => {
 
     expect(handleDelete).toHaveBeenCalledWith("tx_test_1");
   });
+
+  it("renders transcript text from Deepgram live response payload correctly", () => {
+    const liveDeepgramPayload = {
+      metadata: {
+        duration: 6.6,
+        created: "2026-09-29T16:27:51.039Z",
+      },
+      results: {
+        channels: [
+          {
+            alternatives: [
+              {
+                transcript: "Hello. Hello. Let's check. Let's just go and see. Hello. Hello.",
+                confidence: 0.58947754,
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    render(<TranscriptionItem data={liveDeepgramPayload} onUpdate={vi.fn()} onDelete={vi.fn()} />);
+
+    expect(
+      screen.getByText("Hello. Hello. Let's check. Let's just go and see. Hello. Hello.")
+    ).toBeInTheDocument();
+    expect(screen.getByText("6.6s")).toBeInTheDocument();
+    expect(screen.getByText("59% accuracy")).toBeInTheDocument();
+  });
+
+  it("falls back to paragraphs.transcript when alternatives[0].transcript is empty", () => {
+    const payloadWithParagraphsOnly = {
+      results: {
+        channels: [
+          {
+            alternatives: [
+              {
+                transcript: "",
+                paragraphs: {
+                  transcript: "Fallback paragraph text",
+                },
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    render(<TranscriptionItem data={payloadWithParagraphsOnly} onUpdate={vi.fn()} onDelete={vi.fn()} />);
+
+    expect(screen.getByText("Fallback paragraph text")).toBeInTheDocument();
+  });
 });

@@ -31,10 +31,9 @@ const AudioRecorder = ({ setData, onTranscribed }) => {
     try {
       const result = await speechToText(audioBlob);
       if (result) {
-        if (typeof onTranscribed === "function") {
-          onTranscribed(result);
-        } else if (typeof setData === "function") {
-          setData((prev) => (Array.isArray(prev) ? [result, ...prev] : result));
+        const callback = onTranscribed || setData;
+        if (typeof callback === "function") {
+          callback(result);
         }
         resetRecording();
       }

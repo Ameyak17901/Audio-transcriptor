@@ -70,7 +70,7 @@ const StudioContainer = ({ onTranscribed }) => {
       {/* Active Studio View */}
       <div className="w-full">
         {activeTab === "microphone" ? (
-          <AudioRecorder setData={onTranscribed} />
+          <AudioRecorder onTranscribed={onTranscribed} setData={onTranscribed} />
         ) : (
           <AudioDropzone onTranscribed={onTranscribed} />
         )}

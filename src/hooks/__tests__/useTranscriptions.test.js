@@ -174,4 +174,24 @@ describe("useTranscriptions Hook", () => {
     const stored = JSON.parse(localStorage.getItem("audio_transcripts_history"));
     expect(stored.length).toBeLessThanOrEqual(50);
   });
+
+  it("handles functional updater passed to addTranscript defensively", () => {
+    const { result } = renderHook(() => useTranscriptions());
+
+    const sample = {
+      results: {
+        channels: [{ alternatives: [{ transcript: "Preserved transcript from functional call" }] }],
+      },
+    };
+
+    act(() => {
+      // Simulate updater pattern passed by mistake: (prev) => [sample, ...prev]
+      result.current.addTranscript((prev) => [sample, ...prev]);
+    });
+
+    expect(result.current.transcripts).toHaveLength(1);
+    expect(
+      result.current.transcripts[0].results.channels[0].alternatives[0].transcript
+    ).toBe("Preserved transcript from functional call");
+  });
 });
