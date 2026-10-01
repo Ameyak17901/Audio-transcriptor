@@ -25,9 +25,11 @@ class Settings(BaseSettings):
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",") if i.strip()]
         return v
-    # Supabase Cloud Storage & Database
+    # Supabase Cloud Storage & Database & Auth
     supabase_url: str = ""
     supabase_service_role_key: str = ""
+    supabase_anon_key: str = ""
+    supabase_jwt_secret: str = ""
     supabase_bucket: str = "audio-recordings"
 
     model_config = SettingsConfigDict(

@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from app.api.jobs import router as jobs_router
 from app.api.rag import router as rag_router
 from app.api.routes import router as api_router
+from app.api.transcripts import router as transcripts_router
 from app.config import get_settings
 
 settings = get_settings()
@@ -46,6 +47,7 @@ app.add_middleware(
 # Include API Routers
 app.include_router(api_router)
 app.include_router(jobs_router)
+app.include_router(transcripts_router)
 app.include_router(rag_router)
 
 # Production Static Files & Single-Page Application (SPA) Serving
