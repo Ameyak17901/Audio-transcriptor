@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
 
 from app.config import Settings, get_settings
+from app.core.auth import AuthenticatedUser, get_optional_user
 from app.services.deepgram import DeepgramService
 from app.services.supabase_storage import SupabaseStorageService
 
@@ -55,20 +56,27 @@ async def health_check(settings: Settings = Depends(get_settings)):
 @router.post("/uploads/presigned-url", response_model=PresignedUploadResponse)
 async def get_presigned_upload_url(
     payload: PresignedUploadRequest,
+    user: Optional[AuthenticatedUser] = Depends(get_optional_user),
     settings: Settings = Depends(get_settings),
 ):
     """
     Vends a time-limited signed upload lease in Supabase Storage.
-    Client uploads audio binary directly via HTTP PUT, consuming 0 bytes of RAM on FastAPI.
+    If authenticated, automatically scopes target path to user_recordings/{user_id}/...
     """
+    target_path = payload.file_path.strip().lstrip("/")
+    if user and not target_path.startswith(f"user_recordings/{user.id}/"):
+        filename = target_path.split("/")[-1]
+        target_path = f"user_recordings/{user.id}/{filename}"
+
     storage = SupabaseStorageService()
-    result = storage.generate_signed_upload_url(file_path=payload.file_path)
+    result = storage.generate_signed_upload_url(file_path=target_path)
     return PresignedUploadResponse(**result)
 
 
 @router.post("/uploads/signed-download-url", response_model=SignedDownloadResponse)
 async def get_signed_download_url(
     payload: SignedDownloadRequest,
+    user: Optional[AuthenticatedUser] = Depends(get_optional_user),
     settings: Settings = Depends(get_settings),
 ):
     """
@@ -86,14 +94,25 @@ async def get_signed_download_url(
 @router.delete("/uploads/audio")
 async def delete_uploaded_audio(
     payload: DeleteAudioRequest,
+    user: Optional[AuthenticatedUser] = Depends(get_optional_user),
     settings: Settings = Depends(get_settings),
 ):
     """
     Deletes an audio recording file from Supabase Storage bucket.
+    Guards against cross-tenant unauthorized deletion if user context is present.
     """
+    clean_path = payload.file_path.strip().lstrip("/")
+    if user and clean_path.startswith("user_recordings/"):
+        parts = clean_path.split("/")
+        if len(parts) >= 2 and parts[1] != user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Unauthorized: cannot delete audio belonging to another user.",
+            )
+
     storage = SupabaseStorageService()
-    success = storage.delete_audio_file(payload.file_path)
-    return {"success": success, "file_path": payload.file_path}
+    success = storage.delete_audio_file(clean_path)
+    return {"success": success, "file_path": clean_path}
 
 
 @router.post("/transcribe")
